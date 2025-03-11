@@ -41,13 +41,15 @@ def serve(sqlite_database: Optional[Path] = None) -> None:
         name="update",
         description="Update existing documentation"
     )
-    async def update_tool(section: Optional[str] = None) -> str:
+    async def update_tool(section: Optional[str] = None, use_ai: bool = False, api_key: Optional[str] = None) -> str:
         """Update existing documentation.
         
         Args:
             section: Optional section name to update
+            use_ai: Whether to use AI to analyze codebase and detect completed features
+            api_key: Anthropic API key for AI feature detection (optional)
         """
-        return update_documentation(section, db_path)
+        return update_documentation(section, db_path, use_ai, api_key)
 
     @app.tool(
         name="status",

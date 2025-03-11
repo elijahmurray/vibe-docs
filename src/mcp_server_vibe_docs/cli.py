@@ -43,10 +43,22 @@ def init(ctx, project_name: str, template: str):
     "--section",
     help="Optional section name to update",
 )
+@click.option(
+    "--ai",
+    is_flag=True,
+    help="Use AI to analyze codebase and detect completed features",
+)
+@click.option(
+    "--api-key",
+    help="Anthropic API key for AI feature detection (optional, can use ANTHROPIC_API_KEY env var)",
+)
 @click.pass_context
-def update(ctx, section: Optional[str] = None):
-    """Update existing documentation."""
-    result = update_documentation(section, ctx.obj["db_path"])
+def update(ctx, section: Optional[str] = None, ai: bool = False, api_key: Optional[str] = None):
+    """Update existing documentation.
+    
+    With --ai flag, uses Claude to analyze your codebase and detect completed features.
+    """
+    result = update_documentation(section, ctx.obj["db_path"], ai, api_key)
     click.echo(result)
 
 

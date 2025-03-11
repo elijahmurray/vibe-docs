@@ -11,6 +11,7 @@ Requires-Dist: mcp
 Requires-Dist: pydantic
 Requires-Dist: rich
 Requires-Dist: questionary
+Requires-Dist: anthropic>=0.17.0
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 

@@ -3,6 +3,7 @@ mcp
 pydantic
 rich
 questionary
+anthropic>=0.17.0
 
 [dev]
 pytest

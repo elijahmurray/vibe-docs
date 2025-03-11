@@ -17,7 +17,8 @@ dependencies = [
     "mcp",
     "pydantic",
     "rich",
-    "questionary"
+    "questionary",
+    "anthropic>=0.17.0"  # For AI-powered feature detection
 ]
 
 [project.scripts]
