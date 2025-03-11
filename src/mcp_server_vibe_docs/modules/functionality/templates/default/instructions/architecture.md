@@ -3,22 +3,56 @@
 ## Project: {{project_name}}
 
 ## Overview
-{{architecture_description}}
+This document outlines the architecture of the {{project_name}} project.
 
-## Components
-The system is comprised of the following key components:
+## Project Type
+{{project_type}}
 
+## Technology Stack
+
+### Frontend
+{{frontend_stack}}
+
+### Backend
+{{backend_stack}}
+
+## Key Components
 {{key_components}}
 
 ## Data Flow
-1. User initializes a project with `vibe init`
-2. Documentation templates are created and populated
-3. Features are tracked in a SQLite database
-4. Status can be queried with `vibe status`
-5. Documentation can be updated with `vibe update`
+
+<!-- TODO: Document your data flow. Example: -->
+```
+┌─────────┐     ┌──────────┐     ┌────────────┐     ┌────────────┐
+│ Frontend │────►│ API Layer│────►│ Controllers│────►│ Data Layer │
+└─────────┘     └──────────┘     └────────────┘     └────────────┘
+                                       │
+                                       ▼
+                                 ┌────────────┐
+                                 │  Services  │
+                                 └────────────┘
+```
+
+## API Architecture
+<!-- TODO: Document your API architecture, patterns, etc. -->
+
+## Authentication & Authorization
+<!-- TODO: Document your auth approach, roles, permissions, etc. -->
+
+## Data Models
+{{data_models}}
 
 ## Database Schema
-- Projects table: Stores project metadata
-- Features table: Tracks feature implementation status
-- Sections table: Stores documentation sections
-- Templates table: Defines available templates
+<!-- TODO: Document your database schema or link to schema definition -->
+
+## Error Handling
+<!-- TODO: Document your error handling approach -->
+
+## Performance Considerations
+<!-- TODO: Document performance considerations, optimizations, etc. -->
+
+## Security Considerations
+<!-- TODO: Document security measures, best practices, etc. -->
+
+## Deployment Architecture
+<!-- TODO: Document your deployment architecture, environments, etc. -->

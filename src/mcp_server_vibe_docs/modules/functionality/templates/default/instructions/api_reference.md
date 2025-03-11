@@ -2,35 +2,140 @@
 
 ## Project: {{project_name}}
 
-## CLI Commands
+## API Overview
+{{api_description}}
 
-### Initialize
-```bash
-vibe init <project_name> [--template <template_name>]
+## Authentication
+<!-- TODO: Document your authentication methods. Example: -->
+```
+# Bearer Token Authentication
+Authorization: Bearer <token>
+
+# API Key Authentication
+X-API-Key: <api_key>
 ```
 
-Initializes a new documentation structure with the specified project name and optional template.
+## Common Headers
+<!-- TODO: Document common request/response headers. Example: -->
+- `Content-Type: application/json`
+- `Accept: application/json`
+- `X-Request-ID: <request_id>` - For request tracking
 
-**Arguments:**
-- `project_name`: Name of the project (required)
-- `--template`: Template to use (default or api)
-
-### Update
-```bash
-vibe update [--section <section_name>]
+## Error Handling
+<!-- TODO: Document your error response format. Example: -->
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Required field missing",
+    "details": {
+      "field": "email",
+      "issue": "cannot be empty"
+    }
+  }
+}
 ```
 
-Updates the documentation, either all sections or a specific section.
+## Endpoints
 
-**Arguments:**
-- `--section`: Optional section name to update
+### Resource Endpoints
+<!-- TODO: Document your resource endpoints. Example: -->
 
-### Status
-```bash
-vibe status [--format <format>]
+#### Get All Resources
+```
+GET /api/resources
 ```
 
-Checks the feature implementation status.
+**Query Parameters:**
+- `page` (optional): Page number for pagination
+- `limit` (optional): Items per page (default: 20)
+- `sort` (optional): Field to sort by (default: 'createdAt')
 
-**Arguments:**
-- `--format`: Output format (text or json)
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "1",
+      "type": "resource",
+      "attributes": {
+        "name": "Example Resource",
+        "created_at": "2023-05-01T12:00:00Z",
+        "updated_at": "2023-05-01T12:00:00Z"
+      }
+    }
+  ],
+  "meta": {
+    "total": 100,
+    "page": 1,
+    "limit": 20
+  }
+}
+```
+
+#### Get Resource by ID
+```
+GET /api/resources/:id
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "id": "1",
+    "type": "resource",
+    "attributes": {
+      "name": "Example Resource",
+      "description": "This is an example resource",
+      "created_at": "2023-05-01T12:00:00Z",
+      "updated_at": "2023-05-01T12:00:00Z"
+    },
+    "relationships": {
+      "owner": {
+        "data": { "type": "user", "id": "1" }
+      }
+    }
+  }
+}
+```
+
+#### Create Resource
+```
+POST /api/resources
+```
+
+**Request Body:**
+```json
+{
+  "name": "New Resource",
+  "description": "This is a new resource"
+}
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "id": "2",
+    "type": "resource",
+    "attributes": {
+      "name": "New Resource",
+      "description": "This is a new resource",
+      "created_at": "2023-05-01T12:00:00Z",
+      "updated_at": "2023-05-01T12:00:00Z"
+    }
+  }
+}
+```
+
+### User Endpoints
+<!-- TODO: Document your user endpoints -->
+
+## Data Models
+<!-- TODO: Document your data models -->
+
+## Pagination
+<!-- TODO: Document your pagination approach -->
+
+## Rate Limiting
+<!-- TODO: Document rate limiting policies -->

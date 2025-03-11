@@ -86,8 +86,24 @@ def initialize_project(project_name: str, template: str = "default", db_path: Op
     conn.commit()
     conn.close()
     
-    console.print(Panel.fit(
+    # Create detailed next steps message
+    next_steps = [
         f"✅ Project '{project_name}' initialized successfully with the '{template}' template",
+        "",
+        "Next Steps:",
+        "1. Review docs/README.md to understand the documentation structure",
+        "2. Fill in the TODO sections in docs/project_coding_docs.md (primary AI knowledge base)",
+        "3. Document your API endpoints and features",
+        "4. Set up your AI coding assistant:",
+        "   - Cursor: Add docs/project_coding_docs.md as knowledge and docs/cursorrules.md as rules",
+        "   - Windsurf: Add docs/project_coding_docs.md to knowledge base",
+        "   - Other AI tools: Reference docs/project_coding_docs.md in your prompts",
+        "",
+        f"Your documentation is located at: {project_dir}/docs"
+    ]
+
+    console.print(Panel.fit(
+        "\n".join(next_steps),
         title="Vibe Docs",
         border_style="green"
     ))
@@ -105,38 +121,76 @@ def _prompt_for_template_values(project_name: str) -> Dict[str, str]:
         Dictionary of placeholder values
     """
     console.print(Panel.fit(
-        "Please provide information to populate your documentation templates:",
+        "Please provide information to populate your documentation templates (press Enter to skip any question):",
         title="Template Configuration",
         border_style="blue"
     ))
     
+    # Start with project type selection
+    project_type = questionary.select(
+        "What type of project is this?",
+        choices=["fullstack", "api-only", "frontend-only", "library", "other"],
+        default="fullstack"
+    ).ask()
+    
+    # Ask if they want minimal scaffolding
+    minimal_mode = questionary.confirm(
+        "Would you like minimal scaffolding with TODOs to fill in later?", 
+        default=True
+    ).ask()
+    
     responses = {
         "project_name": project_name,
-        "project_overview": questionary.text(
-            "Project Overview:"
-        ).ask(),
-        "architecture_description": questionary.text(
-            "Architecture Description:"
-        ).ask(),
-        "key_components": questionary.text(
-            "Key Components (comma-separated):"
-        ).ask(),
-        "prerequisite_1": questionary.text(
-            "Prerequisite 1:"
-        ).ask(),
-        "prerequisite_2": questionary.text(
-            "Prerequisite 2:"
-        ).ask(),
-        "installation_command": questionary.text(
-            "Installation Command:"
-        ).ask(),
-        "guideline_1": questionary.text(
-            "Coding Guideline 1:"
-        ).ask(),
-        "guideline_2": questionary.text(
-            "Coding Guideline 2:"
-        ).ask(),
+        "project_type": project_type,
     }
+    
+    # If minimal mode, return with basic placeholders
+    if minimal_mode:
+        console.print("[green]✅ Using minimal mode with TODOs for you to fill in later[/green]")
+        responses.update({
+            "project_overview": "<!-- TODO: Add project overview -->",
+            "key_components": "<!-- TODO: List key components -->",
+            "api_description": "<!-- TODO: Describe your API -->",
+            "frontend_stack": "<!-- TODO: Describe frontend technologies -->",
+            "backend_stack": "<!-- TODO: Describe backend technologies -->",
+            "data_models": "<!-- TODO: Document data models -->",
+            "coding_standards": "<!-- TODO: Define coding standards -->",
+        })
+        return responses
+    
+    # Otherwise, ask detailed questions
+    if project_type in ["fullstack", "frontend-only"]:
+        frontend_stack = questionary.text(
+            "Frontend Technologies (e.g., React, Vue, Angular):"
+        ).ask() or "<!-- TODO: Document frontend technologies -->"
+        responses["frontend_stack"] = frontend_stack
+    
+    if project_type in ["fullstack", "api-only"]:
+        backend_stack = questionary.text(
+            "Backend Technologies (e.g., Express, Django, Rails):"
+        ).ask() or "<!-- TODO: Document backend technologies -->"
+        responses["backend_stack"] = backend_stack
+    
+    # Common questions for all project types
+    responses["project_overview"] = questionary.text(
+        "Project Overview (brief description):"
+    ).ask() or "<!-- TODO: Add project overview -->"
+    
+    responses["key_components"] = questionary.text(
+        "Key Components (comma-separated):"
+    ).ask() or "<!-- TODO: List key components -->"
+    
+    responses["api_description"] = questionary.text(
+        "API Description (if applicable):"
+    ).ask() or "<!-- TODO: Describe your API -->"
+    
+    responses["data_models"] = questionary.text(
+        "Data Models (comma-separated):"
+    ).ask() or "<!-- TODO: Document data models -->"
+    
+    responses["coding_standards"] = questionary.text(
+        "Coding Standards (e.g., PEP 8, Airbnb style):"
+    ).ask() or "<!-- TODO: Define coding standards -->"
     
     return responses
 
@@ -157,16 +211,33 @@ def _create_template_files(
         project_id: Project ID in the database
         cursor: Database cursor
     """
-    # Copy instructions
-    instructions_src = template_dir / "instructions"
+    # Create instructions directory
     instructions_dest = docs_dir / "instructions"
+    instructions_dest.mkdir(exist_ok=True)
     
+    # Copy instructions based on project type
+    instructions_src = template_dir / "instructions"
+    project_type = values.get("project_type", "fullstack")
+    
+    # Core files all projects need
+    core_instruction_files = ["getting_started.md", "architecture.md", "api_reference.md"]
+    
+    # Add frontend/backend guidelines based on project type
+    if project_type in ["fullstack", "frontend-only"]:
+        core_instruction_files.append("frontend_guidelines.md")
+    
+    if project_type in ["fullstack", "api-only", "library"]:
+        core_instruction_files.append("backend_guidelines.md")
+    
+    # Copy instruction files
     if instructions_src.exists():
-        for file_path in instructions_src.glob("*.md"):
-            _copy_and_populate_file(file_path, instructions_dest / file_path.name, values, project_id, cursor)
+        for file_name in core_instruction_files:
+            file_path = instructions_src / file_name
+            if file_path.exists():
+                _copy_and_populate_file(file_path, instructions_dest / file_name, values, project_id, cursor)
     
     # Copy other template files
-    for file_name in ["features.md", "project_coding_docs.md", "implementation_plan.md", 
+    for file_name in ["README.md", "features.md", "project_coding_docs.md", "implementation_plan.md", 
                       "cursorrules.md", "windsurfrules.md"]:
         src_file = template_dir / file_name
         if src_file.exists():
