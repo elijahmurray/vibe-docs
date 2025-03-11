@@ -1,0 +1,8 @@
+click
+mcp
+pydantic
+rich
+questionary
+
+[dev]
+pytest

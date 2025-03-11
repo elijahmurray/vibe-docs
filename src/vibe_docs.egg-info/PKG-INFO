@@ -1,3 +1,19 @@
+Metadata-Version: 2.2
+Name: vibe-docs
+Version: 0.1.0
+Summary: MCP for generating documentation for AI IDEs to read.
+Author-email: Elijah Murray <3240306+elijahmurray@users.noreply.github.com>
+License: MIT
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: click
+Requires-Dist: mcp
+Requires-Dist: pydantic
+Requires-Dist: rich
+Requires-Dist: questionary
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+
 # Vibe Docs - Your Documentation Scaffolding Tool
 
 Vibe Docs is a documentation scaffolding tool that helps you create and maintain comprehensive project documentation with the assistance of AI. By establishing a standardized structure for your documentation, Vibe Docs ensures that AI tools have the full context needed to provide high-quality assistance throughout your project's lifecycle.
