@@ -22,7 +22,7 @@ def initialize_project(project_name: str, template: str = "default", db_path: Op
     """Initialize a new documentation project with the specified template.
     
     Args:
-        project_name: Name of the project
+        project_name: Name of the project (for documentation, not a directory name)
         template: Template to use (default or api)
         db_path: Path to the SQLite database file
         
@@ -41,12 +41,14 @@ def initialize_project(project_name: str, template: str = "default", db_path: Op
     if template not in TEMPLATE_PATHS:
         return f"Error: Template '{template}' not found. Available templates: {', '.join(TEMPLATE_PATHS.keys())}"
     
-    # Create project directory
-    project_dir = Path.cwd() / project_name
-    if project_dir.exists():
-        return f"Error: Directory '{project_dir}' already exists"
+    # Create docs directory in current working directory
+    project_dir = Path.cwd()
+    docs_dir = project_dir / "docs"
     
-    project_dir.mkdir(parents=True)
+    if docs_dir.exists():
+        return f"Error: Docs directory already exists in this project. Use 'vibe update' to update existing documentation."
+    
+    docs_dir.mkdir(exist_ok=True)
     
     # Create database connection
     conn = sqlite3.connect(db_path)
@@ -59,15 +61,11 @@ def initialize_project(project_name: str, template: str = "default", db_path: Op
     )
     project_id = cursor.lastrowid
     
-    # Create documentation structure
-    docs_dir = project_dir / "docs"
-    docs_dir.mkdir()
-    
     template_dir = TEMPLATE_PATHS[template]
     
     # Create template directories
     instructions_dir = docs_dir / "instructions"
-    instructions_dir.mkdir()
+    instructions_dir.mkdir(exist_ok=True)
     
     # Create instruction files with placeholders
     prompt_responses = _prompt_for_template_values(project_name)
@@ -99,7 +97,7 @@ def initialize_project(project_name: str, template: str = "default", db_path: Op
         "   - Windsurf: Add docs/project_coding_docs.md to knowledge base",
         "   - Other AI tools: Reference docs/project_coding_docs.md in your prompts",
         "",
-        f"Your documentation is located at: {project_dir}/docs"
+        "Your documentation is located in the docs/ folder in your current directory"
     ]
 
     console.print(Panel.fit(
