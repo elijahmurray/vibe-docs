@@ -114,15 +114,24 @@ async function validate(options) {
     };
     
     const allIssues = [];
+    const validations = {};
+    
+    // Stop the initial spinner
+    spinner.stop();
+    console.log(chalk.blue('Validating documentation files:'));
     
     // Check each document
     for (const [fileName, docType] of Object.entries(fileToDocType)) {
       const filePath = path.join(docsDir, fileName);
-      spinner.text = `Checking ${fileName}...`;
+      const fileSpinner = ora(`Checking ${fileName}...`).start();
       
       const result = await checkDocumentCompleteness(filePath, docType);
+      validations[fileName] = result.valid;
       
-      if (!result.valid) {
+      if (result.valid) {
+        fileSpinner.succeed(`${fileName} is valid and complete`);
+      } else {
+        fileSpinner.fail(`${fileName} has issues`);
         result.issues.forEach(issue => {
           allIssues.push({
             file: fileName,
@@ -137,15 +146,39 @@ async function validate(options) {
     
     const isValid = allIssues.length === 0;
     
+    console.log('\n');
     if (isValid) {
-      spinner.succeed('All documentation is valid and complete');
+      console.log(chalk.green('✅ All documentation is valid and complete'));
     } else {
-      spinner.warn(`Found ${allIssues.length} issues in documentation`);
+      console.log(chalk.yellow(`⚠️ Found ${allIssues.length} issues in documentation:`));
+      
+      // Group issues by file
+      const issuesByFile = {};
+      allIssues.forEach(issue => {
+        if (!issuesByFile[issue.file]) {
+          issuesByFile[issue.file] = [];
+        }
+        issuesByFile[issue.file].push(issue);
+      });
+      
+      // Display issues by file
+      Object.entries(issuesByFile).forEach(([file, issues]) => {
+        console.log(chalk.yellow(`\n${file}:`));
+        issues.forEach(issue => {
+          console.log(chalk.yellow(`  - ${issue.message}`));
+          if (issue.sections) {
+            issue.sections.forEach(section => {
+              console.log(chalk.yellow(`    • Missing section: ${section}`));
+            });
+          }
+        });
+      });
     }
     
     return {
       valid: isValid,
-      issues: allIssues
+      issues: allIssues,
+      validations
     };
   } catch (error) {
     spinner.fail(`Error validating documentation: ${error.message}`);

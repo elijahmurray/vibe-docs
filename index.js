@@ -93,17 +93,14 @@ program
   .action(async (options) => {
     try {
       const results = await validate(options);
-      if (results.valid) {
-        console.log(chalk.green('✅ Documentation is valid and complete!'));
-      } else {
-        console.log(chalk.yellow('⚠️ Documentation has issues:'));
-        results.issues.forEach(issue => {
-          console.log(`- ${issue.file}: ${issue.message}`);
-        });
-        if (options.fix) {
-          console.log(chalk.blue('Attempting to fix issues...'));
-          // Implementation for fixing issues would go here
-        }
+      // No additional console output needed as validate() now handles all the display
+      
+      if (!results.valid && options.fix) {
+        console.log(chalk.blue('\nAttempting to fix issues...'));
+        // Implementation for fixing issues would go here
+      }
+      
+      if (!results.valid) {
         process.exit(1);
       }
     } catch (error) {
