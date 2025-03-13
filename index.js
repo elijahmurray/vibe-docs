@@ -10,6 +10,7 @@ const init = require('./commands/init');
 const generate = require('./commands/generate');
 const update = require('./commands/update');
 const validate = require('./commands/validate');
+const configCommands = require('./commands/config');
 
 // Load config if exists
 let config = {};
@@ -56,7 +57,7 @@ program
   .option('-a, --output-all', 'Generate all document types')
   .option('-o, --output <types>', 'Specific document types to generate (comma-separated)')
   .option('-u, --update-existing', 'Update existing documents')
-  .option('-m, --model <n>', 'LLM model to use', config.llm?.model || 'gpt-4')
+  .option('-m, --model <n>', 'LLM model to use', config.llm?.model || 'claude-3-haiku-20240307')
   .action(async (options) => {
     try {
       await generate(options);
@@ -73,7 +74,7 @@ program
   .description('Update documentation as project evolves')
   .option('-i, --input <file>', 'Input file to update from', config.prdPath || './docs/prd.md')
   .option('-c, --check', 'Check for inconsistencies without updating')
-  .option('-m, --model <n>', 'LLM model to use', config.llm?.model || 'gpt-4')
+  .option('-m, --model <n>', 'LLM model to use', config.llm?.model || 'claude-3-haiku-20240307')
   .action(async (options) => {
     try {
       await update(options);
@@ -105,6 +106,48 @@ program
       }
     } catch (error) {
       console.error(chalk.red('Error validating documentation:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// vibe config command
+program
+  .command('config')
+  .description('Configure Vibe Docs settings')
+  .action(async () => {
+    try {
+      await configCommands.showConfig();
+    } catch (error) {
+      console.error(chalk.red('Error showing configuration:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('config:set-api-key')
+  .description('Set the API key for LLM calls')
+  .option('-k, --key <key>', 'API key')
+  .option('-p, --provider <provider>', 'API provider (openai, anthropic)', 'openai')
+  .action(async (options) => {
+    try {
+      await configCommands.setApiKey(options);
+      console.log(chalk.green('✅ API key set successfully!'));
+    } catch (error) {
+      console.error(chalk.red('Error setting API key:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('config:set-model')
+  .description('Set the default LLM model to use')
+  .argument('<model>', 'Model name (e.g. gpt-4, claude-3)')
+  .action(async (model, options) => {
+    try {
+      await configCommands.setModel({ model, ...options });
+      console.log(chalk.green(`✅ Default model set to ${model}!`));
+    } catch (error) {
+      console.error(chalk.red('Error setting model:'), error.message);
       process.exit(1);
     }
   });

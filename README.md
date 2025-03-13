@@ -8,6 +8,25 @@ Vibe Docs is a documentation scaffolding tool designed to streamline the vibe co
 npm install -g vibe-docs
 ```
 
+### API Key Setup
+
+Vibe Docs requires an OpenAI or Anthropic API key to generate documentation using LLMs. You can set this up in two ways:
+
+1. Environment variable:
+```bash
+export ANTHROPIC_API_KEY=your-api-key-here
+```
+
+2. Using the config command:
+```bash
+vibe config:set-api-key
+```
+
+You can also configure which model to use:
+```bash
+vibe config:set-model claude-3-haiku-20240307
+```
+
 ## Commands
 
 ### `vibe init`

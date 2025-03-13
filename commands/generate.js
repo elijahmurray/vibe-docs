@@ -52,10 +52,114 @@ Here is the PRD:
   }
 };
 
-// This would be replaced with actual LLM API calls
+// Actual LLM API call implementation
+const axios = require('axios');
+const dotenv = require('dotenv');
+const fsSync = require('fs');
+
+// Try to load API key from .env file
+dotenv.config();
+
+// Function to call an LLM API
+const callLlmApi = async (prompt, options) => {
+  const spinner = ora('Calling LLM API...').start();
+  
+  try {
+    // Get API key from environment variable or config
+    let apiKey = process.env.ANTHROPIC_API_KEY;
+    
+    // Check for API key in user config directory
+    if (!apiKey) {
+      const userConfigDir = path.join(require('os').homedir(), '.vibe-docs');
+      const configPath = path.join(userConfigDir, 'config.json');
+      
+      if (fsSync.existsSync(configPath)) {
+        try {
+          const config = JSON.parse(fsSync.readFileSync(configPath, 'utf8'));
+          apiKey = config.apiKey;
+        } catch (error) {
+          // Failed to read config file
+        }
+      }
+    }
+    
+    // Check if we have an API key
+    if (!apiKey) {
+      spinner.fail('No API key found. Please set ANTHROPIC_API_KEY environment variable or run "vibe config:set-api-key"');
+      throw new Error('API key not found');
+    }
+    
+    // Determine which API provider to use based on model name or config
+    let provider = 'anthropic';
+    if (options.provider) {
+      provider = options.provider;
+    } else if (options.model.includes('claude')) {
+      provider = 'anthropic';
+    } else if (options.model.includes('gpt')) {
+      provider = 'openai';
+    }
+    
+    // Call the appropriate API based on provider
+    let response;
+    
+    if (provider === 'openai') {
+      spinner.text = `Calling OpenAI API with model ${options.model}...`;
+      
+      response = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: options.model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: options.temperature || 0.7,
+          max_tokens: options.maxTokens || 2000
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          }
+        }
+      );
+      
+      spinner.succeed('LLM response received');
+      return response.data.choices[0].message.content;
+    } else if (provider === 'anthropic') {
+      spinner.text = `Calling Anthropic API with model ${options.model}...`;
+      
+      response = await axios.post(
+        'https://api.anthropic.com/v1/messages',
+        {
+          model: options.model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: options.maxTokens || 2000
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+          }
+        }
+      );
+      
+      spinner.succeed('LLM response received');
+      return response.data.content[0].text;
+    } else {
+      spinner.fail(`Unsupported provider: ${provider}`);
+      throw new Error(`Unsupported provider: ${provider}`);
+    }
+  } catch (error) {
+    spinner.fail(`Error calling LLM API: ${error.message}`);
+    
+    // Fall back to simulation mode if API call fails
+    console.log(chalk.yellow('Falling back to simulation mode due to API error'));
+    return simulateLlmCall(prompt, options);
+  }
+};
+
+// Fallback simulation for testing or when API is unavailable
 const simulateLlmCall = async (prompt, options) => {
-  // In a real implementation, this would call an LLM API
-  console.log(`[SIMULATED] Calling LLM with model ${options.model}`);
+  console.log(chalk.yellow(`[SIMULATED] Calling LLM with model ${options.model}`));
   
   // For simulation, just return a template document based on the type
   if (prompt.includes('instructions for AI coding tools')) {
@@ -204,9 +308,24 @@ async function generateDocument(type, prdContent, outputDir, options) {
   const prompt = docType.prompt.replace('{{prdContent}}', prdContent);
   
   // Call LLM to generate document
-  const generatedContent = await simulateLlmCall(prompt, {
-    model: options.model
-  });
+  let generatedContent;
+  try {
+    // Try to use the actual LLM API first
+    generatedContent = await callLlmApi(prompt, {
+      model: options.model,
+      provider: options.provider,
+      temperature: options.temperature || 0.7,
+      maxTokens: options.maxTokens || 2000
+    });
+  } catch (error) {
+    console.log(chalk.yellow(`LLM API call failed: ${error.message}`));
+    console.log(chalk.yellow('Falling back to simulation mode...'));
+    
+    // Fall back to simulation if API call fails
+    generatedContent = await simulateLlmCall(prompt, {
+      model: options.model
+    });
+  }
   
   // Write the generated content to file
   await fs.writeFile(outputPath, generatedContent);
@@ -214,11 +333,30 @@ async function generateDocument(type, prdContent, outputDir, options) {
   return outputPath;
 }
 
+// Get user global config
+async function getUserConfig() {
+  try {
+    // Try to load the user's global config
+    const configCommands = require('./config');
+    return await configCommands.getConfig();
+  } catch (error) {
+    return {};
+  }
+}
+
 // Main generate function
 async function generate(options) {
   const spinner = ora('Preparing to generate documentation...').start();
   
   try {
+    // Load user config for model defaults
+    const userConfig = await getUserConfig();
+    
+    // Merge options with user config
+    options.model = options.model || userConfig.model || 'claude-3-haiku-20240307';
+    options.provider = options.provider || userConfig.provider || 'anthropic';
+    options.temperature = options.temperature || userConfig.temperature || 0.7;
+    
     const inputFile = path.resolve(process.cwd(), options.input);
     const outputDir = path.dirname(inputFile);
     

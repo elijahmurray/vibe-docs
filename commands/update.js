@@ -96,9 +96,28 @@ async function backupDocuments(docsDir, files) {
   return backupDir;
 }
 
+// Get user global config
+async function getUserConfig() {
+  try {
+    // Try to load the user's global config
+    const configCommands = require('./config');
+    return await configCommands.getConfig();
+  } catch (error) {
+    return {};
+  }
+}
+
 // Main update function
 async function update(options) {
   const spinner = ora('Checking for updates...').start();
+  
+  // Load user config for model defaults
+  const userConfig = await getUserConfig();
+  
+  // Merge options with user config
+  options.model = options.model || userConfig.model || 'claude-3-haiku-20240307';
+  options.provider = options.provider || userConfig.provider || 'anthropic';
+  options.temperature = options.temperature || userConfig.temperature || 0.7;
   
   try {
     const prdPath = path.resolve(process.cwd(), options.input);
