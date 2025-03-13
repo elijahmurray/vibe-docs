@@ -46,8 +46,16 @@ async function checkDocumentCompleteness(filePath, docType) {
     
     const missingRequiredSections = required.filter(section => !hasSection(content, section));
     
-    // Check for placeholder text
-    const containsPlaceholders = content.includes('[') && content.includes(']');
+    // Check for placeholder text - only detect patterns like [Name] or [Description]
+    // This improved regex detects empty placeholder brackets but not filled ones
+    const placeholderRegex = /\[\s*([A-Za-z\s]*)\s*\]/g;
+    const placeholders = content.match(placeholderRegex) || [];
+    const emptyPlaceholders = placeholders.filter(p => 
+      p.trim().length <= 2 || // Just [] with possible whitespace
+      p.trim().replace(/[\[\]\s]/g, '').length < 3 // Very short content
+    );
+    
+    const containsPlaceholders = emptyPlaceholders.length > 0;
     
     const issues = [];
     
