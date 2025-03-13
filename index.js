@@ -63,7 +63,14 @@ program
       await generate(options);
       console.log(chalk.green('✅ Documentation generation complete!'));
     } catch (error) {
-      console.error(chalk.red('Error generating documentation:'), error.message);
+      if (error.message.includes('API key') || error.message.includes('401')) {
+        console.error(chalk.red('\n❌ API Key Error: ') + 
+          chalk.yellow('Missing or invalid API key. Please set up your Anthropic API key:'));
+        console.error(chalk.blue('\n    vibe config:set-api-key\n'));
+        console.error(chalk.gray('You can get an API key from https://console.anthropic.com/\n'));
+      } else {
+        console.error(chalk.red('Error generating documentation:'), error.message);
+      }
       process.exit(1);
     }
   });
@@ -80,7 +87,14 @@ program
       await update(options);
       console.log(chalk.green('✅ Documentation updated successfully!'));
     } catch (error) {
-      console.error(chalk.red('Error updating documentation:'), error.message);
+      if (error.message.includes('API key') || error.message.includes('401')) {
+        console.error(chalk.red('\n❌ API Key Error: ') + 
+          chalk.yellow('Missing or invalid API key. Please set up your Anthropic API key:'));
+        console.error(chalk.blue('\n    vibe config:set-api-key\n'));
+        console.error(chalk.gray('You can get an API key from https://console.anthropic.com/\n'));
+      } else {
+        console.error(chalk.red('Error updating documentation:'), error.message);
+      }
       process.exit(1);
     }
   });

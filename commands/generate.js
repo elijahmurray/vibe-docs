@@ -150,10 +150,7 @@ const callLlmApi = async (prompt, options) => {
     }
   } catch (error) {
     spinner.fail(`Error calling LLM API: ${error.message}`);
-    
-    // Fall back to simulation mode if API call fails
-    console.log(chalk.yellow('Falling back to simulation mode due to API error'));
-    return simulateLlmCall(prompt, options);
+    throw error;
   }
 };
 
@@ -310,7 +307,7 @@ async function generateDocument(type, prdContent, outputDir, options) {
   // Call LLM to generate document
   let generatedContent;
   try {
-    // Try to use the actual LLM API first
+    // Use the actual LLM API
     generatedContent = await callLlmApi(prompt, {
       model: options.model,
       provider: options.provider,
@@ -318,13 +315,13 @@ async function generateDocument(type, prdContent, outputDir, options) {
       maxTokens: options.maxTokens || 2000
     });
   } catch (error) {
-    console.log(chalk.yellow(`LLM API call failed: ${error.message}`));
-    console.log(chalk.yellow('Falling back to simulation mode...'));
+    // For API key errors, provide specific guidance
+    if (error.message.includes('API key not found') || error.message.includes('Invalid API key')) {
+      throw new Error(`API key missing or invalid. Please set your Anthropic API key using 'vibe config:set-api-key' command.`);
+    }
     
-    // Fall back to simulation if API call fails
-    generatedContent = await simulateLlmCall(prompt, {
-      model: options.model
-    });
+    // For other errors, just re-throw
+    throw new Error(`LLM API call failed: ${error.message}`);
   }
   
   // Write the generated content to file

@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const path = require('path');
 const ora = require('ora');
 const chalk = require('chalk');
@@ -234,12 +235,41 @@ Full PRD content for reference:
 ${prdContent}`;
       
       // Call LLM to generate updated document
-      const updatedContent = await simulateLlmCall(prompt, {
-        model: options.model,
-      });
+      let updatedContent;
+      
+      // Check for API key before making the call
+      if (!process.env.ANTHROPIC_API_KEY) {
+        const configDir = path.join(require('os').homedir(), '.vibe-docs');
+        const configPath = path.join(configDir, 'config.json');
+        
+        let hasApiKey = false;
+        if (fsSync.existsSync(configPath)) {
+          try {
+            const config = JSON.parse(fsSync.readFileSync(configPath, 'utf8'));
+            if (config.apiKey) {
+              hasApiKey = true;
+            }
+          } catch (error) {
+            // Failed to read config file
+          }
+        }
+        
+        if (!hasApiKey) {
+          throw new Error('API key missing. Please set your Anthropic API key using "vibe config:set-api-key" command.');
+        }
+      }
+      
+      // For now, we'll simulate the call until API integration is completed
+      try {
+        updatedContent = await simulateLlmCall(prompt, {
+          model: options.model,
+        });
+      } catch (error) {
+        throw new Error(`LLM API call failed: ${error.message}`);
+      }
       
       // In a real implementation, parse LLM response to extract the updated document
-      // For now, we'll just simulated adding an update notice
+      // For now, we'll just simulate adding an update notice
       const finalContent = `${docContent}\n\n## Updated on ${new Date().toISOString()}\n\n${updatedContent}`;
       
       // Write updated document
