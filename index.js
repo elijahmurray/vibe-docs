@@ -65,9 +65,15 @@ program
     } catch (error) {
       if (error.message.includes('API key') || error.message.includes('401')) {
         console.error(chalk.red('\n❌ API Key Error: ') + 
-          chalk.yellow('Missing or invalid API key. Please set up your Anthropic API key:'));
-        console.error(chalk.blue('\n    vibe config:set-api-key\n'));
-        console.error(chalk.gray('You can get an API key from https://console.anthropic.com/\n'));
+          chalk.yellow('Missing or invalid API key. Please check your configuration:'));
+        console.error(chalk.blue('\n    vibe config'));
+        console.error(chalk.blue('\nTo set your API key:'));
+        console.error(chalk.blue('    vibe config:set-api-key'));
+        console.error(chalk.blue('\nTo set your provider (currently expecting Anthropic):'));
+        console.error(chalk.blue('    vibe config:set-provider anthropic'));
+        console.error(chalk.blue('\nTo reset all config to defaults:'));
+        console.error(chalk.blue('    vibe config:reset\n'));
+        console.error(chalk.gray('You can get an Anthropic API key from https://console.anthropic.com/\n'));
       } else {
         console.error(chalk.red('Error generating documentation:'), error.message);
       }
@@ -89,9 +95,15 @@ program
     } catch (error) {
       if (error.message.includes('API key') || error.message.includes('401')) {
         console.error(chalk.red('\n❌ API Key Error: ') + 
-          chalk.yellow('Missing or invalid API key. Please set up your Anthropic API key:'));
-        console.error(chalk.blue('\n    vibe config:set-api-key\n'));
-        console.error(chalk.gray('You can get an API key from https://console.anthropic.com/\n'));
+          chalk.yellow('Missing or invalid API key. Please check your configuration:'));
+        console.error(chalk.blue('\n    vibe config'));
+        console.error(chalk.blue('\nTo set your API key:'));
+        console.error(chalk.blue('    vibe config:set-api-key'));
+        console.error(chalk.blue('\nTo set your provider (currently expecting Anthropic):'));
+        console.error(chalk.blue('    vibe config:set-provider anthropic'));
+        console.error(chalk.blue('\nTo reset all config to defaults:'));
+        console.error(chalk.blue('    vibe config:reset\n'));
+        console.error(chalk.gray('You can get an Anthropic API key from https://console.anthropic.com/\n'));
       } else {
         console.error(chalk.red('Error updating documentation:'), error.message);
       }
@@ -162,6 +174,37 @@ program
       console.log(chalk.green(`✅ Default model set to ${model}!`));
     } catch (error) {
       console.error(chalk.red('Error setting model:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('config:set-provider')
+  .description('Set the AI provider to use')
+  .argument('<provider>', 'Provider name (anthropic, openai)')
+  .action(async (provider, options) => {
+    try {
+      await configCommands.setProvider({ provider, ...options });
+      console.log(chalk.green(`✅ Provider set to ${provider}!`));
+    } catch (error) {
+      console.error(chalk.red('Error setting provider:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('config:reset')
+  .description('Reset all configuration to defaults')
+  .action(async () => {
+    try {
+      await configCommands.resetConfig();
+      console.log(chalk.green('✅ Configuration reset to defaults!'));
+      console.log(chalk.blue('Default configuration:'));
+      console.log(chalk.blue('- Provider: anthropic'));
+      console.log(chalk.blue('- Model: claude-3-haiku-20240307'));
+      console.log(chalk.blue('- API Key: None (will need to be set)'));
+    } catch (error) {
+      console.error(chalk.red('Error resetting configuration:'), error.message);
       process.exit(1);
     }
   });

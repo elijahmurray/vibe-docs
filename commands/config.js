@@ -118,6 +118,58 @@ async function setModel(options) {
   }
 }
 
+// Set provider
+async function setProvider(options) {
+  const spinner = ora('Setting provider...').start();
+  
+  try {
+    // Get current config
+    const config = await getConfig();
+    
+    // Check if valid provider
+    if (!['anthropic', 'openai'].includes(options.provider)) {
+      spinner.fail(`Invalid provider: ${options.provider}. Valid options are: anthropic, openai`);
+      throw new Error(`Invalid provider: ${options.provider}`);
+    }
+    
+    // Set provider
+    config.provider = options.provider;
+    
+    // Save config
+    await saveConfig(config);
+    
+    spinner.succeed(`Provider set to ${options.provider}`);
+    return { success: true };
+  } catch (error) {
+    spinner.fail(`Failed to set provider: ${error.message}`);
+    throw error;
+  }
+}
+
+// Reset config to defaults
+async function resetConfig() {
+  const spinner = ora('Resetting configuration...').start();
+  
+  try {
+    // Default config
+    const defaultConfig = {
+      apiKey: '',
+      provider: 'anthropic',
+      model: 'claude-3-haiku-20240307',
+      temperature: 0.7
+    };
+    
+    // Save config
+    await saveConfig(defaultConfig);
+    
+    spinner.succeed('Configuration reset to defaults');
+    return { success: true };
+  } catch (error) {
+    spinner.fail(`Failed to reset configuration: ${error.message}`);
+    throw error;
+  }
+}
+
 // Show current config
 async function showConfig() {
   const spinner = ora('Loading configuration...').start();
@@ -142,6 +194,8 @@ async function showConfig() {
 module.exports = {
   setApiKey,
   setModel,
+  setProvider,
+  resetConfig,
   showConfig,
   getConfig
 };

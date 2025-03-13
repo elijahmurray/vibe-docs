@@ -22,9 +22,23 @@ export ANTHROPIC_API_KEY=your-api-key-here
 vibe config:set-api-key
 ```
 
-You can also configure which model to use:
+You can manage your configuration with these commands:
+
 ```bash
+# View current config
+vibe config
+
+# Set API key
+vibe config:set-api-key
+
+# Set model to use
 vibe config:set-model claude-3-haiku-20240307
+
+# Set API provider
+vibe config:set-provider anthropic
+
+# Reset to defaults
+vibe config:reset
 ```
 
 ## Commands
