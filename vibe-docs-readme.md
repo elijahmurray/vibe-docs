@@ -22,7 +22,7 @@ Options:
 - `--dir <directory>` - Target directory for documentation (default: './docs')
 - `--template <template>` - Template to use (default: 'standard')
 
-This creates a docs folder with template files for:
+This creates an `instructions` folder with template files for:
 - `prd.md` (Product Requirements Document)
 - `instructions.md` (AI-optimized instructions)
 - `user-stories.md` (User stories)
@@ -41,7 +41,7 @@ Options:
 - `--output-all` - Generate all document types
 - `--output <types>` - Specific document types to generate (comma-separated)
 - `--update-existing` - Update existing documents
-- `--model <n>` - LLM model to use (default: 'gpt-4')
+- `--model <name>` - LLM model to use (default: 'gpt-4')
 
 ### `vibe update`
 
@@ -54,7 +54,7 @@ vibe update [options]
 Options:
 - `--input <file>` - Input file to update from (default: './docs/prd.md')
 - `--check` - Check for inconsistencies without updating
-- `--model <n>` - LLM model to use (default: 'gpt-4')
+- `--model <name>` - LLM model to use (default: 'gpt-4')
 
 ### `vibe validate`
 

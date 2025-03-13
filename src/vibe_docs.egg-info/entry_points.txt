@@ -1,3 +1,0 @@
-[console_scripts]
-mcp-server-vibe-docs = mcp_server_vibe_docs.server:main
-vibe = mcp_server_vibe_docs.cli:cli

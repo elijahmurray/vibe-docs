@@ -1,0 +1,41 @@
+{
+  "name": "vibe-docs",
+  "version": "1.0.0",
+  "description": "Documentation scaffolding tool for vibe coding",
+  "main": "index.js",
+  "bin": {
+    "vibe": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "vibe-coding",
+    "documentation",
+    "scaffolding",
+    "ai",
+    "llm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "diff": "^5.1.0",
+    "inquirer": "^8.2.5",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "index.js",
+    "commands/**/*.js",
+    "templates/**/*.md",
+    "README.md",
+    "LICENSE"
+  ]
+}
