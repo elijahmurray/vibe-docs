@@ -117,7 +117,11 @@ async function update(options) {
   
   // Merge options with user config
   options.model = options.model || userConfig.model || 'claude-3-haiku-20240307';
-  options.provider = options.provider || userConfig.provider || 'anthropic';
+  
+  // Force provider to be anthropic unless explicitly set to something else
+  // This overrides any incorrect config to ensure we're always using the right provider
+  options.provider = options.provider || 'anthropic';
+  
   options.temperature = options.temperature || userConfig.temperature || 0.7;
   
   try {

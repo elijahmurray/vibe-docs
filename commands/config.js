@@ -20,7 +20,12 @@ async function getConfig() {
   try {
     const configPath = getConfigPath();
     const configData = await fs.readFile(configPath, 'utf8');
-    return JSON.parse(configData);
+    const config = JSON.parse(configData);
+    
+    // Always ensure provider is anthropic
+    config.provider = 'anthropic';
+    
+    return config;
   } catch (error) {
     // Return default config if file doesn't exist
     return {
@@ -46,6 +51,9 @@ async function saveConfig(config) {
     }
   }
   
+  // Force provider to always be anthropic
+  config.provider = 'anthropic';
+  
   // Write config file
   await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf8');
 }
@@ -55,8 +63,14 @@ async function setApiKey(options) {
   const spinner = ora('Setting API key...').start();
   
   try {
-    // Get current config
-    const config = await getConfig();
+    // Instead of getting current config, create a new one from scratch
+    // This avoids any potential reference or mutation issues
+    const config = {
+      apiKey: '',
+      provider: 'anthropic', // Always Anthropic
+      model: 'claude-3-haiku-20240307',
+      temperature: 0.7
+    };
     
     // If key is provided in options, use it
     if (options.key) {
@@ -68,7 +82,7 @@ async function setApiKey(options) {
         {
           type: 'input',
           name: 'apiKey',
-          message: 'Enter your API key:',
+          message: 'Enter your Anthropic API key:',
           validate: input => input.trim() !== '' || 'API key cannot be empty'
         }
       ]);
@@ -77,18 +91,13 @@ async function setApiKey(options) {
       spinner.start();
     }
     
-    // Set provider if provided
-    if (options.provider) {
-      config.provider = options.provider;
-    } else {
-      // Default to anthropic if not specified
-      config.provider = 'anthropic';
-    }
+    // Always force provider to anthropic
+    config.provider = 'anthropic';
     
-    // Save config
+    // Save config directly without any further manipulation
     await saveConfig(config);
     
-    spinner.succeed('API key saved');
+    spinner.succeed('Anthropic API key saved');
     return { success: true };
   } catch (error) {
     spinner.fail(`Failed to set API key: ${error.message}`);
@@ -106,6 +115,11 @@ async function setModel(options) {
     
     // Set model
     config.model = options.model;
+    
+    // Ensure provider remains anthropic unless explicitly set otherwise
+    if (!config.provider || config.provider === '') {
+      config.provider = 'anthropic';
+    }
     
     // Save config
     await saveConfig(config);
@@ -126,19 +140,18 @@ async function setProvider(options) {
     // Get current config
     const config = await getConfig();
     
-    // Check if valid provider
-    if (!['anthropic', 'openai'].includes(options.provider)) {
-      spinner.fail(`Invalid provider: ${options.provider}. Valid options are: anthropic, openai`);
-      throw new Error(`Invalid provider: ${options.provider}`);
+    // We only support Anthropic, so force it
+    if (options.provider && options.provider !== 'anthropic') {
+      spinner.warn(`Only Anthropic provider is supported. Setting provider to 'anthropic'`);
     }
     
-    // Set provider
-    config.provider = options.provider;
+    // Set provider to anthropic
+    config.provider = 'anthropic';
     
     // Save config
     await saveConfig(config);
     
-    spinner.succeed(`Provider set to ${options.provider}`);
+    spinner.succeed(`Provider set to anthropic`);
     return { success: true };
   } catch (error) {
     spinner.fail(`Failed to set provider: ${error.message}`);

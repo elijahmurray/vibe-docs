@@ -65,12 +65,10 @@ program
     } catch (error) {
       if (error.message.includes('API key') || error.message.includes('401')) {
         console.error(chalk.red('\n❌ API Key Error: ') + 
-          chalk.yellow('Missing or invalid API key. Please check your configuration:'));
+          chalk.yellow('Missing or invalid Anthropic API key. Please check your configuration:'));
         console.error(chalk.blue('\n    vibe config'));
-        console.error(chalk.blue('\nTo set your API key:'));
+        console.error(chalk.blue('\nTo set your Anthropic API key:'));
         console.error(chalk.blue('    vibe config:set-api-key'));
-        console.error(chalk.blue('\nTo set your provider (currently expecting Anthropic):'));
-        console.error(chalk.blue('    vibe config:set-provider anthropic'));
         console.error(chalk.blue('\nTo reset all config to defaults:'));
         console.error(chalk.blue('    vibe config:reset\n'));
         console.error(chalk.gray('You can get an Anthropic API key from https://console.anthropic.com/\n'));
@@ -95,12 +93,10 @@ program
     } catch (error) {
       if (error.message.includes('API key') || error.message.includes('401')) {
         console.error(chalk.red('\n❌ API Key Error: ') + 
-          chalk.yellow('Missing or invalid API key. Please check your configuration:'));
+          chalk.yellow('Missing or invalid Anthropic API key. Please check your configuration:'));
         console.error(chalk.blue('\n    vibe config'));
-        console.error(chalk.blue('\nTo set your API key:'));
+        console.error(chalk.blue('\nTo set your Anthropic API key:'));
         console.error(chalk.blue('    vibe config:set-api-key'));
-        console.error(chalk.blue('\nTo set your provider (currently expecting Anthropic):'));
-        console.error(chalk.blue('    vibe config:set-provider anthropic'));
         console.error(chalk.blue('\nTo reset all config to defaults:'));
         console.error(chalk.blue('    vibe config:reset\n'));
         console.error(chalk.gray('You can get an Anthropic API key from https://console.anthropic.com/\n'));
@@ -151,13 +147,12 @@ program
 
 program
   .command('config:set-api-key')
-  .description('Set the API key for LLM calls')
-  .option('-k, --key <key>', 'API key')
-  .option('-p, --provider <provider>', 'API provider (openai, anthropic)', 'openai')
+  .description('Set the Anthropic API key for LLM calls')
+  .option('-k, --key <key>', 'Anthropic API key')
   .action(async (options) => {
     try {
       await configCommands.setApiKey(options);
-      console.log(chalk.green('✅ API key set successfully!'));
+      console.log(chalk.green('✅ Anthropic API key set successfully!'));
     } catch (error) {
       console.error(chalk.red('Error setting API key:'), error.message);
       process.exit(1);
@@ -166,8 +161,8 @@ program
 
 program
   .command('config:set-model')
-  .description('Set the default LLM model to use')
-  .argument('<model>', 'Model name (e.g. gpt-4, claude-3)')
+  .description('Set the default Claude model to use')
+  .argument('<model>', 'Claude model name (e.g. claude-3-haiku-20240307, claude-3-sonnet-20240229)')
   .action(async (model, options) => {
     try {
       await configCommands.setModel({ model, ...options });
@@ -178,19 +173,7 @@ program
     }
   });
 
-program
-  .command('config:set-provider')
-  .description('Set the AI provider to use')
-  .argument('<provider>', 'Provider name (anthropic, openai)')
-  .action(async (provider, options) => {
-    try {
-      await configCommands.setProvider({ provider, ...options });
-      console.log(chalk.green(`✅ Provider set to ${provider}!`));
-    } catch (error) {
-      console.error(chalk.red('Error setting provider:'), error.message);
-      process.exit(1);
-    }
-  });
+// Provider is always Anthropic, so no need for a set-provider command
 
 program
   .command('config:reset')
@@ -200,7 +183,6 @@ program
       await configCommands.resetConfig();
       console.log(chalk.green('✅ Configuration reset to defaults!'));
       console.log(chalk.blue('Default configuration:'));
-      console.log(chalk.blue('- Provider: anthropic'));
       console.log(chalk.blue('- Model: claude-3-haiku-20240307'));
       console.log(chalk.blue('- API Key: None (will need to be set)'));
     } catch (error) {

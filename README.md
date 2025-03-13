@@ -10,7 +10,7 @@ npm install -g vibe-docs
 
 ### API Key Setup
 
-Vibe Docs requires an OpenAI or Anthropic API key to generate documentation using LLMs. You can set this up in two ways:
+Vibe Docs requires an Anthropic API key to generate documentation using Claude LLMs. You can set this up in two ways:
 
 1. Environment variable:
 ```bash
@@ -34,8 +34,7 @@ vibe config:set-api-key
 # Set model to use
 vibe config:set-model claude-3-haiku-20240307
 
-# Set API provider
-vibe config:set-provider anthropic
+# Vibe only supports Anthropic's Claude models
 
 # Reset to defaults
 vibe config:reset
