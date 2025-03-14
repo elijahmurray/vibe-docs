@@ -102,82 +102,63 @@ export async function createMcpServer() {
     },
     async ({ directory, template }) => {
       console.log('======== VIBE DOCS INIT ========');
-      console.log(`Initializing docs in: ${directory}`);
-      console.log(`Using template: ${template}`);
+      console.log(`Input parameters:`);
+      console.log(`- directory: ${directory}`);
+      console.log(`- template: ${template}`);
+      console.log(`Environment:`);
+      console.log(`- packageDir: ${packageDir}`);
+      console.log(`- currentDir: ${process.cwd()}`);
       
       try {
-        // SUPER SIMPLE IMPLEMENTATION
+        // ULTRA SIMPLE IMPLEMENTATION
         
-        // 1. Find the template directory
-        const templateDir = path.join(packageDir, 'templates', template);
-        console.log(`Template dir: ${templateDir}`);
+        // 1. Standard template files we'll always use
+        const standardFiles = ['README.md', 'prd.md', 'design-doc.md', 'instructions.md', 'user-stories.md'];
         
-        // 2. Make target directory absolute
-        const targetDir = path.isAbsolute(directory) 
+        // 2. Get paths
+        const templatePath = path.join(packageDir, 'templates', template);
+        const targetPath = path.isAbsolute(directory) 
           ? directory 
           : path.join(process.cwd(), directory);
-        console.log(`Target dir: ${targetDir}`);
-        
-        // 3. Create target directory
-        console.log(`Creating directory: ${targetDir}`);
-        await fs.mkdir(targetDir, { recursive: true });
-        
-        // 4. Check if template exists
-        console.log(`Checking if template exists: ${templateDir}`);
-        try {
-          await fs.access(templateDir);
-        } catch (error) {
-          console.error(`Template not found: ${templateDir}`);
-          throw new Error(`Template '${template}' not found.`);
-        }
-        
-        // 5. List and copy files
-        console.log(`Reading template directory: ${templateDir}`);
-        const files = await fs.readdir(templateDir);
-        console.log(`Files found: ${files.join(', ')}`);
-        
-        if (files.length === 0) {
-          throw new Error(`Template '${template}' exists but is empty`);
-        }
-        
-        let successCount = 0;
-        
-        // Copy each file
-        for (const file of files) {
-          // Skip hidden files
-          if (file.startsWith('.')) {
-            console.log(`Skipping hidden file: ${file}`);
-            continue;
-          }
           
-          const sourcePath = path.join(templateDir, file);
-          const targetPath = path.join(targetDir, file);
+        console.log(`Template path: ${templatePath}`);
+        console.log(`Target path: ${targetPath}`);
+        
+        // 3. Create target directory (this is simple and will always work)
+        console.log(`Creating directory: ${targetPath}`);
+        await fs.mkdir(targetPath, { recursive: true });
+        
+        // 4. Verify template directory exists
+        try {
+          await fs.access(templatePath);
+          console.log(`✓ Template exists`);
+        } catch (err) {
+          console.error(`✗ Template doesn't exist: ${templatePath}`);
+          throw new Error(`Template '${template}' not found`);
+        }
+        
+        // 5. Copy each standard file (simple loop, fewer error cases)
+        let copiedFiles = 0;
+        for (const file of standardFiles) {
+          const source = path.join(templatePath, file);
+          const destination = path.join(targetPath, file);
           
           try {
-            // Skip directories
-            const stats = await fs.stat(sourcePath);
-            if (stats.isDirectory()) {
-              console.log(`Skipping directory: ${file}`);
-              continue;
-            }
-            
-            // Copy the file
-            console.log(`Copying ${file}: ${sourcePath} -> ${targetPath}`);
-            await fs.copyFile(sourcePath, targetPath);
-            console.log(`Successfully copied: ${file}`);
-            successCount++;
-          } catch (fileError) {
-            console.error(`Error with file ${file}: ${fileError instanceof Error ? fileError.message : String(fileError)}`);
+            await fs.copyFile(source, destination);
+            console.log(`✓ Copied ${file}`);
+            copiedFiles++;
+          } catch (err) {
+            console.error(`✗ Failed to copy ${file}: ${err instanceof Error ? err.message : String(err)}`);
           }
         }
         
-        console.log(`Success! Copied ${successCount} files.`);
-        console.log('======== VIBE DOCS INIT COMPLETE ========');
+        console.log(`======== VIBE DOCS INIT COMPLETE ========`);
+        console.log(`Successfully copied ${copiedFiles} files to ${targetPath}`);
         
         return {
           content: [{ 
             type: "text", 
-            text: `Documentation structure initialized in ${targetDir} using ${template} template.\n\nCopied ${successCount} files successfully.` 
+            text: `Documentation structure initialized in ${targetPath} using ${template} template.\n\nCopied ${copiedFiles} files successfully.` 
           }]
         };
       } catch (error) {
