@@ -65,7 +65,15 @@ Use the available MCP tools to create and manage your documentation:
 ### Starting a New Project
 
 1. **Initialize documentation structure:**
-   Use the `init-docs` MCP tool with parameters:
+   Use the `init-docs` MCP tool with parameters. For most reliable results, use absolute paths:
+   ```json
+   {
+     "directory": "/absolute/path/to/your/project/docs",
+     "template": "standard"
+   }
+   ```
+   
+   Alternatively, you can use relative paths, but be aware they're relative to your current project directory:
    ```json
    {
      "directory": "./docs",

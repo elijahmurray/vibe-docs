@@ -83,81 +83,81 @@ export async function createMcpServer() {
         directory: z.string().default('./docs'),
         template: z.string().default('standard')
     }, async ({ directory, template }) => {
+        console.log('======== VIBE DOCS INIT ========');
+        console.log(`Initializing docs in: ${directory}`);
+        console.log(`Using template: ${template}`);
         try {
-            // Create the directory if it doesn't exist
-            await fs.mkdir(directory, { recursive: true });
-            // For MCP server, we need to use absolute paths based on the package directory
-            // Note: The MCP config specifies cwd as the vibe-docs directory
+            // SUPER SIMPLE IMPLEMENTATION
+            // 1. Find the template directory
             const templateDir = path.join(packageDir, 'templates', template);
-            // Create target directory with absolute path
+            console.log(`Template dir: ${templateDir}`);
+            // 2. Make target directory absolute
             const targetDir = path.isAbsolute(directory)
                 ? directory
-                : path.join(currentDir, directory);
+                : path.join(process.cwd(), directory);
+            console.log(`Target dir: ${targetDir}`);
+            // 3. Create target directory
+            console.log(`Creating directory: ${targetDir}`);
+            await fs.mkdir(targetDir, { recursive: true });
+            // 4. Check if template exists
+            console.log(`Checking if template exists: ${templateDir}`);
             try {
-                // Ensure target directory exists
-                await fs.mkdir(targetDir, { recursive: true });
-                // Check if the template directory exists
                 await fs.access(templateDir);
-                console.log(`Template directory found at: ${templateDir}`);
-                console.log(`Target directory: ${targetDir}`);
             }
             catch (error) {
-                console.error(`Error accessing directories: ${error instanceof Error ? error.message : String(error)}`);
-                throw new Error(`Template directory '${template}' not found at ${templateDir} or target directory could not be created.`);
+                console.error(`Template not found: ${templateDir}`);
+                throw new Error(`Template '${template}' not found.`);
             }
-            let files = [];
-            try {
-                files = await fs.readdir(templateDir);
-                console.log(`Found template files: ${files.join(', ')}`);
-                if (files.length === 0) {
-                    throw new Error(`Template directory '${template}' exists but is empty`);
-                }
+            // 5. List and copy files
+            console.log(`Reading template directory: ${templateDir}`);
+            const files = await fs.readdir(templateDir);
+            console.log(`Files found: ${files.join(', ')}`);
+            if (files.length === 0) {
+                throw new Error(`Template '${template}' exists but is empty`);
             }
-            catch (error) {
-                console.error(`Error reading template directory: ${error instanceof Error ? error.message : String(error)}`);
-                throw new Error(`Failed to read template directory: ${error instanceof Error ? error.message : String(error)}`);
-            }
+            let successCount = 0;
+            // Copy each file
             for (const file of files) {
+                // Skip hidden files
+                if (file.startsWith('.')) {
+                    console.log(`Skipping hidden file: ${file}`);
+                    continue;
+                }
                 const sourcePath = path.join(templateDir, file);
                 const targetPath = path.join(targetDir, file);
-                console.log(`Copying ${sourcePath} to ${targetPath}`);
                 try {
+                    // Skip directories
+                    const stats = await fs.stat(sourcePath);
+                    if (stats.isDirectory()) {
+                        console.log(`Skipping directory: ${file}`);
+                        continue;
+                    }
+                    // Copy the file
+                    console.log(`Copying ${file}: ${sourcePath} -> ${targetPath}`);
                     await fs.copyFile(sourcePath, targetPath);
-                    console.log(`Successfully copied ${file}`);
+                    console.log(`Successfully copied: ${file}`);
+                    successCount++;
                 }
-                catch (error) {
-                    console.error(`Error copying file ${file}: ${error instanceof Error ? error.message : String(error)}`);
-                    throw new Error(`Failed to copy template file ${file}: ${error instanceof Error ? error.message : String(error)}`);
+                catch (fileError) {
+                    console.error(`Error with file ${file}: ${fileError instanceof Error ? fileError.message : String(fileError)}`);
                 }
             }
+            console.log(`Success! Copied ${successCount} files.`);
+            console.log('======== VIBE DOCS INIT COMPLETE ========');
             return {
                 content: [{
                         type: "text",
-                        text: `Documentation structure initialized in ${directory} using ${template} template.`
+                        text: `Documentation structure initialized in ${targetDir} using ${template} template.\n\nCopied ${successCount} files successfully.`
                     }]
             };
         }
         catch (error) {
-            // Create a detailed error message with debugging information
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const detailedError = [
-                `Error initializing documentation: ${errorMessage}`,
-                '\nDebugging Information:',
-                `- Package Directory: ${packageDir}`,
-                `- Current Directory: ${currentDir}`,
-                `- Template Requested: ${template}`,
-                `- Target Directory: ${directory}`,
-                '\nTroubleshooting Steps:',
-                '1. Check if the templates directory exists in your vibe-docs installation',
-                '2. Verify that the standard template directory contains the required files',
-                '3. Try running the MCP server from the vibe-docs directory itself',
-                '4. Make sure you have proper permissions to read/write files'
-            ].join('\n');
-            console.error('Detailed error:', detailedError);
+            console.error(`ERROR: ${error instanceof Error ? error.message : String(error)}`);
+            console.log('======== VIBE DOCS INIT FAILED ========');
             return {
                 content: [{
                         type: "text",
-                        text: detailedError
+                        text: `Error initializing documentation: ${error instanceof Error ? error.message : String(error)}`
                     }]
             };
         }
