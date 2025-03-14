@@ -23,7 +23,7 @@ npm run build
 2. **Start the MCP server:**
 
 ```bash
-npm run mcp
+npm run vibe-docs-mcp
 ```
 
 3. **Configure your MCP client:**

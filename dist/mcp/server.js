@@ -4,8 +4,23 @@ import { z } from "zod";
 import fs from 'fs/promises';
 import path from 'path';
 import { callAnthropicApi } from './anthropic.js';
-// Get the current directory - using process.cwd() instead of import.meta for better compatibility
+// Get the package directory (where vibe-docs is installed)
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+// Get the directory where the vibe-docs package is installed
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageDir = path.resolve(__dirname, '../..');
+// Current working directory (where the command is run from)
 const currentDir = process.cwd();
+// Function to get absolute path for a template directory
+const getTemplatePath = (templateName) => {
+    // First priority: check in the package directory
+    const packageTemplatePath = path.resolve(packageDir, 'templates', templateName);
+    // Second priority: check in the current directory
+    const currentDirTemplatePath = path.resolve(currentDir, 'templates', templateName);
+    return packageTemplatePath;
+};
 // Document types and their generation prompts
 const documentTypes = {
     'instructions': {
@@ -71,13 +86,49 @@ export async function createMcpServer() {
         try {
             // Create the directory if it doesn't exist
             await fs.mkdir(directory, { recursive: true });
-            // Copy template files
-            const templateDir = path.resolve(path.join(currentDir, 'templates', template));
-            const files = await fs.readdir(templateDir);
+            // For MCP server, we need to use absolute paths based on the package directory
+            // Note: The MCP config specifies cwd as the vibe-docs directory
+            const templateDir = path.join(packageDir, 'templates', template);
+            // Create target directory with absolute path
+            const targetDir = path.isAbsolute(directory)
+                ? directory
+                : path.join(currentDir, directory);
+            try {
+                // Ensure target directory exists
+                await fs.mkdir(targetDir, { recursive: true });
+                // Check if the template directory exists
+                await fs.access(templateDir);
+                console.log(`Template directory found at: ${templateDir}`);
+                console.log(`Target directory: ${targetDir}`);
+            }
+            catch (error) {
+                console.error(`Error accessing directories: ${error instanceof Error ? error.message : String(error)}`);
+                throw new Error(`Template directory '${template}' not found at ${templateDir} or target directory could not be created.`);
+            }
+            let files = [];
+            try {
+                files = await fs.readdir(templateDir);
+                console.log(`Found template files: ${files.join(', ')}`);
+                if (files.length === 0) {
+                    throw new Error(`Template directory '${template}' exists but is empty`);
+                }
+            }
+            catch (error) {
+                console.error(`Error reading template directory: ${error instanceof Error ? error.message : String(error)}`);
+                throw new Error(`Failed to read template directory: ${error instanceof Error ? error.message : String(error)}`);
+            }
             for (const file of files) {
                 const sourcePath = path.join(templateDir, file);
-                const targetPath = path.join(directory, file);
-                await fs.copyFile(sourcePath, targetPath);
+                const targetPath = path.join(targetDir, file);
+                console.log(`Copying ${sourcePath} to ${targetPath}`);
+                try {
+                    await fs.copyFile(sourcePath, targetPath);
+                    console.log(`Successfully copied ${file}`);
+                }
+                catch (error) {
+                    console.error(`Error copying file ${file}: ${error instanceof Error ? error.message : String(error)}`);
+                    throw new Error(`Failed to copy template file ${file}: ${error instanceof Error ? error.message : String(error)}`);
+                }
             }
             return {
                 content: [{
@@ -87,10 +138,26 @@ export async function createMcpServer() {
             };
         }
         catch (error) {
+            // Create a detailed error message with debugging information
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const detailedError = [
+                `Error initializing documentation: ${errorMessage}`,
+                '\nDebugging Information:',
+                `- Package Directory: ${packageDir}`,
+                `- Current Directory: ${currentDir}`,
+                `- Template Requested: ${template}`,
+                `- Target Directory: ${directory}`,
+                '\nTroubleshooting Steps:',
+                '1. Check if the templates directory exists in your vibe-docs installation',
+                '2. Verify that the standard template directory contains the required files',
+                '3. Try running the MCP server from the vibe-docs directory itself',
+                '4. Make sure you have proper permissions to read/write files'
+            ].join('\n');
+            console.error('Detailed error:', detailedError);
             return {
                 content: [{
                         type: "text",
-                        text: `Error initializing documentation: ${error instanceof Error ? error.message : String(error)}`
+                        text: detailedError
                     }]
             };
         }

@@ -22,7 +22,7 @@ Then build and run the MCP server:
 npm run build
 
 # Run the MCP server
-npm run mcp
+npm run vibe-docs-mcp
 ```
 
 ## Usage as an MCP Server
@@ -33,7 +33,7 @@ When using Vibe Docs as an MCP server, you'll interact with it through an MCP-co
 
 1. **Start the MCP server**:
    ```bash
-   npm run mcp
+   npm run vibe-docs-mcp
    ```
    This starts the server on the standard input/output streams.
 
@@ -170,7 +170,7 @@ For the MCP server, you can configure the Anthropic API key in one of these ways
 
 1. **Start the MCP server**:
    ```bash
-   npm run mcp
+   npm run vibe-docs-mcp
    ```
 
 2. **Configure Windsurf**:

@@ -11,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/index.js",
-    "mcp": "node dist/index.js"
+    "vibe-docs-mcp": "node dist/index.js"
   },
   "keywords": [
     "vibe-coding",
@@ -44,7 +44,7 @@
   "files": [
     "dist/**/*.js",
     "commands/**/*.js",
-    "templates/**/*.md",
+    "templates/**/*",
     "README.md",
     "LICENSE"
   ]

@@ -142,7 +142,7 @@ Sets the Anthropic API key for document generation.
 
 1. **Start the MCP server**:
    ```bash
-   npm run mcp
+   npm run vibe-docs-mcp
    ```
 
 2. **Connect with an MCP client**:
